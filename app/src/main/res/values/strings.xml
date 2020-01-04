@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Converter</string>
+    <string name="base_currency">Base Currency</string>
+    <string name="second_currency">Second Currency</string>
+    <string name="second">Second</string>
+    <string name="base">Base</string>
+
+</resources>
