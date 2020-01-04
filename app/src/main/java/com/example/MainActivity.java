@@ -5,17 +5,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.converter.R;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import org.angmarch.views.NiceSpinner;
-import org.angmarch.views.OnSpinnerItemSelectedListener;
 
 import java.util.ArrayList;
 
@@ -37,48 +35,26 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.spinner_two)
     NiceSpinner spinnerSecond;
     private ArrayList<String> ratesValue;
-
+    private   Object[] ratesKey ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         convertCurrency();
+        spinnerList();
+        getConverterMethod();
 
     }
 
-    private void convertCurrency() {
-        RetrofitBuilder.getService()
-                .currency(API_KEY)
-                 .enqueue(new Callback<JsonObject>() {
-                     @Override
-                     public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                         getJsonObject(response);
-                     }
-
-                     @Override
-                     public void onFailure(Call<JsonObject> call, Throwable t) {
-                         Toast.makeText(getApplicationContext(), t.getLocalizedMessage() + "Internet OFF", Toast.LENGTH_LONG).show();
-
-                     }
-                 });
-    }
 
 
 
-    private void getJsonObject(Response<JsonObject> response){
-      //  JsonObject object = new Gson().fromJson(response, JsonObject.class);
-        JsonObject rates = response.body().getAsJsonObject("rates");
-        Object[] ratesKey = rates.keySet().toArray();
-        ratesValue = new ArrayList<>();
-        for (Object o : ratesKey) {
-            ratesValue.add(String.valueOf(rates.getAsJsonPrimitive(o.toString())));
-        }
-    }
+
 
     private void spinnerList(){
         spinnerBase.setOnSpinnerItemSelectedListener((parent, view, position, id) -> {
-
+          
         });
 
         spinnerSecond.setOnSpinnerItemSelectedListener((parent, view, position, id) -> {
@@ -87,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getConverterMethod(){
+
         edit_input.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -106,4 +83,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void convertCurrency() {
+        RetrofitBuilder.getService()
+                .currency(API_KEY)
+                .enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                        JsonObject object = response.body();
+                        if (response.isSuccessful() && response.body() !=null){
+                            JsonObject jsonObject = object.getAsJsonObject("rates");
+                            ratesValue = new ArrayList<>();
+                            ratesKey = jsonObject.keySet().toArray();
+                            for (Object jobject : ratesKey) {
+                                ratesValue.add(String.valueOf(jsonObject.getAsJsonPrimitive(jobject.toString())));
+                            }
+                            ArrayAdapter<Object> adapter = new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1, ratesKey);
+                            spinnerBase.setAdapter(adapter);
+                            spinnerSecond.setAdapter(adapter);
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), t.getLocalizedMessage() + "Internet OFF", Toast.LENGTH_LONG).show();
+
+                    }
+                });
+    }
 }
