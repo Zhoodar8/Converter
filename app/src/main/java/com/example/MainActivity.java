@@ -16,8 +16,7 @@ import android.widget.Toast;
 import com.example.converter.R;
 import com.google.gson.JsonObject;
 
-import org.angmarch.views.NiceSpinner;
-
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -25,6 +24,7 @@ import butterknife.ButterKnife;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 
 import static com.example.converter.BuildConfig.API_KEY;
 
@@ -39,15 +39,14 @@ public class MainActivity extends AppCompatActivity {
     Spinner spinnerSecond;
     private ArrayList<String> ratesValue;
     private Object[] ratesKey;
+    private DecimalFormat decimalFormat  = new DecimalFormat("###,###,##0.0000");
     private Double base, second;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        convertCurrency();
+        getCurrency();
         spinnerList();
         getConverterMethod();
 
@@ -58,12 +57,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 base = Double.parseDouble(ratesValue.get(position));
-
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
 
@@ -72,10 +68,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 second = Double.parseDouble(ratesValue.get(position));
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
     }
@@ -90,21 +84,18 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void afterTextChanged(Editable editable) {
-                if (editable != null){
-                    txt_Output.setText(mathConveter(String.valueOf(editable), base,second));
+                if (editable != null && editable.length() > 0){
+                    txt_Output.setText(MathConverter.mConveter(String.valueOf(editable),
+                            base,
+                            second));
                 }else {
                     txt_Output.setText("");
                 }
-
             }
         });
     }
 
-    private String mathConveter(String c, Double baseCurrency, Double secondCurrency ) {
-      Double  sum = ((Double.parseDouble(c) / baseCurrency) * secondCurrency);
-      return String.valueOf(sum);
-    }
-    private void convertCurrency() {
+    private void getCurrency() {
         RetrofitBuilder.getService()
                 .currency(API_KEY)
                 .enqueue(new Callback<JsonObject>() {
